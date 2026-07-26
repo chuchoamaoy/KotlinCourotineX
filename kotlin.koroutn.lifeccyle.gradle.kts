@@ -10,9 +10,9 @@ if (isVibeModeOn) {
             println("\n=========================================")
             println("🔥 [VIBE MODE] Bắt đầu chạy Git Auto...")
             try {
-                // 1. Kiểm tra Git
+                // 1. Kiểm tra Git (Thêm project. trước exec)
                 val statusOut = ByteArrayOutputStream()
-                val checkGit = exec {
+                val checkGit = project.exec {
                     isIgnoreExitValue = true
                     commandLine("git", "status")
                     standardOutput = statusOut
@@ -24,13 +24,13 @@ if (isVibeModeOn) {
                     return@doLast
                 }
 
-                // 2. Chạy Git Add
-                exec { commandLine("git", "add", ".") }
+                // 2. Chạy Git Add (Thêm project. trước exec)
+                project.exec { commandLine("git", "add", ".") }
                 println("✅ [VIBE MODE] Đã Add toàn bộ file.")
 
-                // 3. Chạy Git Commit
+                // 3. Chạy Git Commit (Thêm project. trước exec)
                 val commitOut = ByteArrayOutputStream()
-                exec {
+                project.exec {
                     isIgnoreExitValue = true
                     commandLine("git", "commit", "-m", "Auto update / fix bugs")
                     standardOutput = commitOut
@@ -38,9 +38,9 @@ if (isVibeModeOn) {
                 }
                 println("✅ [VIBE MODE] Trạng thái Commit:\n$commitOut")
 
-                // 4. Chạy Git Push
+                // 4. Chạy Git Push (Thêm project. trước exec)
                 val pushOut = ByteArrayOutputStream()
-                val pushResult = exec { 
+                val pushResult = project.exec { 
                     isIgnoreExitValue = true
                     commandLine("git", "push") 
                     standardOutput = pushOut
@@ -59,7 +59,7 @@ if (isVibeModeOn) {
         }
     }
 
-    // Cách an toàn nhất để móc nối vào task của Android
+    // Móc nối an toàn
     tasks.configureEach {
         if (name == "assembleDebug") {
             finalizedBy(autoGitTask)
