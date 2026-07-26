@@ -3,7 +3,10 @@ import java.io.ByteArrayOutputStream
 val isVibeModeOn = true
 
 if (isVibeModeOn) {
-    tasks.register("autoGitCommitAndPush") {
+    val autoGitTask = tasks.register("autoGitCommitAndPush") {
+        // Lệnh này cực kỳ quan trọng: Ép task luôn chạy, không bao giờ bị Cache (UP-TO-DATE) chặn lại
+        outputs.upToDateWhen { false }
+        
         doLast {
             println("\n=========================================")
             println("🔥 [VIBE MODE] Bắt đầu chạy Git Auto...")
@@ -48,19 +51,24 @@ if (isVibeModeOn) {
                 if (pushResult.exitValue == 0) {
                     println("🚀 [VIBE MODE] PUSH THÀNH CÔNG LÊN GITHUB!")
                 } else {
-                    println("❌ [VIBE MODE] PUSH LỖI! Hãy đọc nguyên nhân bên dưới:\n$pushOut")
+                    println("❌ [VIBE MODE] PUSH LỖI! Nguyên nhân:\n$pushOut")
                 }
             } catch (e: Exception) {
-                println("❌ [VIBE MODE] Lỗi hệ thống Gradle: ${e.message}")
+                println("❌ [VIBE MODE] Lỗi Gradle: ${e.message}")
             }
             println("=========================================\n")
         }
     }
 
-    tasks.whenTaskAdded {
-        if (name == "assembleDebug") {
-            println("🔥 [VIBE MODE] Đã móc nối thành công vào task: assembleDebug")
-            finalizedBy("autoGitCommitAndPush")
+    // Đợi project khởi tạo xong hết mới móc nối để không bị trượt task
+    project.afterEvaluate {
+        try {
+            tasks.named("assembleDebug") {
+                finalizedBy(autoGitTask)
+            }
+            println("🔥 [VIBE MODE] Đã móc nối THÀNH CÔNG vào assembleDebug!")
+        } catch (e: Exception) {
+            println("⚠️ [VIBE MODE] Không tìm thấy assembleDebug để móc nối.")
         }
     }
 }
